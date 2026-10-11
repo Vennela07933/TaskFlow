@@ -139,9 +139,11 @@ const ProjectDetails = () => {
             <button className="btn btn-secondary" onClick={() => navigate(`/projects/${id}/chat`)}>
               <MessageSquare size={18} /> Project Chat
             </button>
-            <button className="btn btn-primary" onClick={() => { setTaskToEdit(null); setIsTaskModalOpen(true); }}>
-              <Plus size={18} /> Add Task
-            </button>
+            {isOwner && (
+              <button className="btn btn-primary" onClick={() => { setTaskToEdit(null); setIsTaskModalOpen(true); }}>
+                <Plus size={18} /> Add Task
+              </button>
+            )}
           </div>
         </div>
 
@@ -161,15 +163,17 @@ const ProjectDetails = () => {
 
       <div>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '16px' }}>
-          Project Tasks ({tasks.length})
+          {isOwner ? `Project Tasks (${tasks.length})` : `Tasks Assigned to You (${tasks.length})`}
         </h2>
 
         {tasks.length === 0 ? (
           <div className="empty-state" style={{ background: '#ffffff', border: '1px dashed var(--border)', borderRadius: '12px' }}>
-            <p>No tasks created in this project yet.</p>
-            <button className="btn btn-primary" style={{ marginTop: '12px' }} onClick={() => { setTaskToEdit(null); setIsTaskModalOpen(true); }}>
-              <Plus size={16} /> Create First Task
-            </button>
+            <p>{isOwner ? 'No tasks created in this project yet.' : 'No tasks assigned to you in this project yet.'}</p>
+            {isOwner && (
+              <button className="btn btn-primary" style={{ marginTop: '12px' }} onClick={() => { setTaskToEdit(null); setIsTaskModalOpen(true); }}>
+                <Plus size={16} /> Create First Task
+              </button>
+            )}
           </div>
         ) : (
           <div className="task-grid">

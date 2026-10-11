@@ -37,9 +37,9 @@ public class TaskService {
         Project project = projectRepository.findById(request.getProjectId())
                 .orElseThrow(() -> new IllegalArgumentException("Project not found with id: " + request.getProjectId()));
 
-        // Check if user belongs to project
-        if (!projectMemberRepository.existsByProjectIdAndUserId(project.getId(), currentUserId)) {
-            throw new AccessDeniedException("You cannot create tasks in a project you do not belong to");
+        // Only the project owner can create and assign tasks in the project
+        if (!project.getOwner().getId().equals(currentUserId)) {
+            throw new AccessDeniedException("Only the project owner can create and assign tasks in this project");
         }
 
         User creator = userRepository.findById(currentUserId)
@@ -80,11 +80,18 @@ public class TaskService {
     }
 
     public List<TaskResponse> getTasksByProjectId(Long projectId, Long currentUserId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("Project not found with id: " + projectId));
+
         if (!projectMemberRepository.existsByProjectIdAndUserId(projectId, currentUserId)) {
             throw new AccessDeniedException("You do not have access to this project's tasks");
         }
 
-        List<Task> tasks = taskRepository.findByProjectId(projectId);
+        boolean isOwner = project.getOwner().getId().equals(currentUserId);
+        List<Task> tasks = isOwner ?
+                taskRepository.findByProjectId(projectId) :
+                taskRepository.findByProjectIdAndAssignedToId(projectId, currentUserId);
+
         return tasks.stream().map(TaskResponse::fromEntity).collect(Collectors.toList());
     }
 

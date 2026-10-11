@@ -52,10 +52,12 @@ const MyTasks = () => {
     fetchTasks();
   };
 
+  const ownedProjects = projects.filter((p) => p.owner?.id === user?.id);
+
   const handleCreateTaskClick = () => {
     setTaskToEdit(null);
-    if (projects.length > 0) {
-      setSelectedProjectMembers(projects[0].members || []);
+    if (ownedProjects.length > 0) {
+      setSelectedProjectMembers(ownedProjects[0].members || []);
     }
     setIsTaskModalOpen(true);
   };
@@ -117,9 +119,11 @@ const MyTasks = () => {
             View, search, edit, and assign tasks across your projects
           </p>
         </div>
-        <button className="btn btn-primary" onClick={handleCreateTaskClick}>
-          <Plus size={18} /> New Task
-        </button>
+        {ownedProjects.length > 0 && (
+          <button className="btn btn-primary" onClick={handleCreateTaskClick}>
+            <Plus size={18} /> New Task
+          </button>
+        )}
       </div>
 
       <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
@@ -179,7 +183,7 @@ const MyTasks = () => {
         onClose={() => setIsTaskModalOpen(false)}
         onSave={handleSaveTask}
         taskToEdit={taskToEdit}
-        projects={projects}
+        projects={taskToEdit ? projects : ownedProjects}
         members={selectedProjectMembers}
       />
 

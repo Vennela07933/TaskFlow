@@ -14,33 +14,25 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     List<Task> findByProjectId(Long projectId);
 
+    List<Task> findByProjectIdAndAssignedToId(Long projectId, Long userId);
+
     List<Task> findByAssignedToId(Long userId);
 
     @Query("SELECT DISTINCT t FROM Task t " +
-           "WHERE (t.project.id IN (SELECT pm.project.id FROM ProjectMember pm WHERE pm.user.id = :userId) " +
-           "   OR t.project.owner.id = :userId " +
-           "   OR t.assignedTo.id = :userId " +
-           "   OR t.createdBy.id = :userId) " +
+           "WHERE (t.assignedTo.id = :userId " +
+           "   OR t.project.owner.id = :userId) " +
            "AND (:status IS NULL OR t.status = :status) " +
            "AND (:search IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')))")
     List<Task> findAccessibleTasks(@Param("userId") Long userId,
                                    @Param("status") TaskStatus status,
                                    @Param("search") String search);
 
-    @Query("SELECT COUNT(t) FROM Task t WHERE " +
-           "(t.project.id IN (SELECT pm.project.id FROM ProjectMember pm WHERE pm.user.id = :userId) " +
-           " OR t.project.owner.id = :userId OR t.assignedTo.id = :userId OR t.createdBy.id = :userId)")
+    @Query("SELECT COUNT(t) FROM Task t WHERE (t.assignedTo.id = :userId OR t.project.owner.id = :userId)")
     long countTotalTasksForUser(@Param("userId") Long userId);
 
-    @Query("SELECT COUNT(t) FROM Task t WHERE " +
-           "(t.project.id IN (SELECT pm.project.id FROM ProjectMember pm WHERE pm.user.id = :userId) " +
-           " OR t.project.owner.id = :userId OR t.assignedTo.id = :userId OR t.createdBy.id = :userId) " +
-           "AND t.status = :status")
+    @Query("SELECT COUNT(t) FROM Task t WHERE (t.assignedTo.id = :userId OR t.project.owner.id = :userId) AND t.status = :status")
     long countTasksByStatusForUser(@Param("userId") Long userId, @Param("status") TaskStatus status);
 
-    @Query("SELECT t FROM Task t WHERE " +
-           "(t.project.id IN (SELECT pm.project.id FROM ProjectMember pm WHERE pm.user.id = :userId) " +
-           " OR t.project.owner.id = :userId OR t.assignedTo.id = :userId OR t.createdBy.id = :userId) " +
-           "ORDER BY t.createdAt DESC")
+    @Query("SELECT t FROM Task t WHERE (t.assignedTo.id = :userId OR t.project.owner.id = :userId) ORDER BY t.createdAt DESC")
     List<Task> findRecentTasksForUser(@Param("userId") Long userId);
 }
